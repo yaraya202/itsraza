@@ -109,5 +109,8 @@ def download_video():
         print(f'Video download error: {e}')
         return jsonify({'error': f'Failed to download video: {str(e)}'}), 500
 
+# Vercel serverless handler
+app_handler = app
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
