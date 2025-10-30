@@ -52,15 +52,13 @@ app.get('/api/download/audio', async (req, res) => {
     
     const title = info.videoDetails.title.replace(/[^\w\s]/gi, '').substring(0, 100);
     
-    const audioFormat = ytdl.chooseFormat(info.formats, { 
-      quality: 'highestaudio',
-      filter: 'audioonly'
-    });
+    const audioFormats = info.formats.filter(f => f.hasAudio && !f.hasVideo);
+    const audioFormat = audioFormats.sort((a, b) => b.audioBitrate - a.audioBitrate)[0];
 
     res.header('Content-Disposition', `attachment; filename="${title}.mp3"`);
     res.header('Content-Type', 'audio/mpeg');
 
-    const audioStream = await ytdl.download(videoUrl, audioFormat);
+    const audioStream = await ytdl.download(videoUrl, { format: audioFormat });
     
     audioStream.on('error', (err) => {
       console.error('Download error:', err);
@@ -92,14 +90,13 @@ app.get('/api/download/video', async (req, res) => {
     
     const title = info.videoDetails.title.replace(/[^\w\s]/gi, '').substring(0, 100);
     
-    const videoFormat = ytdl.chooseFormat(info.formats, { 
-      quality: 'highest'
-    });
+    const videoFormats = info.formats.filter(f => f.hasVideo && f.hasAudio);
+    const videoFormat = videoFormats.sort((a, b) => b.bitrate - a.bitrate)[0];
 
     res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
     res.header('Content-Type', 'video/mp4');
 
-    const videoStream = await ytdl.download(videoUrl, videoFormat);
+    const videoStream = await ytdl.download(videoUrl, { format: videoFormat });
     
     videoStream.on('error', (err) => {
       console.error('Download error:', err);
