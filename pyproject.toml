@@ -1,6 +1,12 @@
 [project]
-name = "repl-nix-workspace"
-version = "0.1.0"
-description = "Add your description here"
+name = "youtube-downloader"
+version = "1.0.0"
+description = "YouTube Search & Download API - Python Flask Application"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "Flask==3.0.0",
+    "flask-cors==4.0.0",
+    "pytubefix==6.16.2",
+    "youtube-search-python==1.6.6",
+    "gunicorn==21.2.0"
+]
