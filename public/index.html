@@ -162,13 +162,7 @@
             background: #218838;
         }
 
-        .download-btn.video-btn {
-            background: #dc3545;
-        }
-
-        .download-btn.video-btn:hover {
-            background: #c82333;
-        }
+        
 
         .error {
             background: #f8d7da;
@@ -285,10 +279,7 @@
                         </div>
                         <div class="video-actions">
                             <button class="download-btn" onclick="downloadAudio('${video.id}')">
-                                🎵 Audio
-                            </button>
-                            <button class="download-btn video-btn" onclick="downloadVideo('${video.id}')">
-                                🎬 Video
+                                🎵 Download Audio (MP3)
                             </button>
                         </div>
                     </div>
@@ -308,15 +299,13 @@
             }
         }
 
-        async function downloadVideo(videoId) {
-            const url = `https://www.youtube.com/watch?v=${videoId}`;
-            showMessage('Starting video download...', 'success');
-            
-            try {
-                window.open(`/api/download/video?url=${encodeURIComponent(url)}`, '_blank');
-                showMessage('Video download started! Check your downloads folder.', 'success');
-            } catch (error) {
-                showMessage(`Error: ${error.message}`, 'error');
+        // Video download removed - audio only
+        
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchVideos();
+            }
+        });e}`, 'error');
             }
         }
 
