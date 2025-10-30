@@ -322,6 +322,7 @@
         }
 
         function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
             messageDiv.innerHTML = `<div class="${type}">${text}</div>`;
             setTimeout(() => {
                 messageDiv.innerHTML = '';

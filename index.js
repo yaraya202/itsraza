@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const youtubesearchapi = require('youtube-search-api');
 const path = require('path');
-const ytdl = require('ytdl-core');
+const ytdl = require('@distube/ytdl-core');
 
 const app = express();
 const PORT = 5000;
