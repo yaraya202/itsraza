@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const youtubesearchapi = require('youtube-search-api');
 const path = require('path');
+const { YtdlCore } = require('@ybd-project/ytdl-core');
 
 const app = express();
 const PORT = 5000;
@@ -46,41 +47,29 @@ app.get('/api/download/audio', async (req, res) => {
       return res.status(400).json({ error: 'Video URL is required' });
     }
 
-    const videoIdMatch = videoUrl.match(/(?:v=|\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    if (!videoIdMatch) {
-      return res.status(400).json({ error: 'Invalid YouTube URL' });
-    }
-    const videoId = videoIdMatch[1];
-
-    const Innertube = require('youtubei.js');
+    const ytdl = new YtdlCore();
+    const info = await ytdl.getFullInfo(videoUrl);
     
-    const youtube = await Innertube.create();
-    const info = await youtube.getInfo(videoId);
+    const title = info.videoDetails.title.replace(/[^\w\s]/gi, '').substring(0, 100);
     
-    const title = info.basic_info.title.replace(/[^\w\s]/gi, '').substring(0, 100);
-    
-    const format = info.chooseFormat({ 
-      type: 'audio',
-      quality: 'best'
+    const audioFormat = ytdl.chooseFormat(info.formats, { 
+      quality: 'highestaudio',
+      filter: 'audioonly'
     });
 
     res.header('Content-Disposition', `attachment; filename="${title}.mp3"`);
     res.header('Content-Type', 'audio/mpeg');
 
-    const stream = await info.download({ 
-      type: 'audio',
-      quality: 'best',
-      format: 'mp3'
-    });
-
-    stream.pipe(res);
-
-    stream.on('error', (err) => {
+    const audioStream = await ytdl.download(videoUrl, audioFormat);
+    
+    audioStream.on('error', (err) => {
       console.error('Download error:', err);
       if (!res.headersSent) {
         res.status(500).json({ error: 'Download failed' });
       }
     });
+
+    audioStream.pipe(res);
 
   } catch (error) {
     console.error('Audio download error:', error);
@@ -90,7 +79,44 @@ app.get('/api/download/audio', async (req, res) => {
   }
 });
 
+app.get('/api/download/video', async (req, res) => {
+  try {
+    const videoUrl = req.query.url;
 
+    if (!videoUrl) {
+      return res.status(400).json({ error: 'Video URL is required' });
+    }
+
+    const ytdl = new YtdlCore();
+    const info = await ytdl.getFullInfo(videoUrl);
+    
+    const title = info.videoDetails.title.replace(/[^\w\s]/gi, '').substring(0, 100);
+    
+    const videoFormat = ytdl.chooseFormat(info.formats, { 
+      quality: 'highest'
+    });
+
+    res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
+    res.header('Content-Type', 'video/mp4');
+
+    const videoStream = await ytdl.download(videoUrl, videoFormat);
+    
+    videoStream.on('error', (err) => {
+      console.error('Download error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Download failed' });
+      }
+    });
+
+    videoStream.pipe(res);
+
+  } catch (error) {
+    console.error('Video download error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Failed to download video. Please try again.' });
+    }
+  }
+});
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

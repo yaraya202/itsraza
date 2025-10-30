@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -144,6 +145,7 @@
         .video-actions {
             display: flex;
             gap: 10px;
+            flex-direction: column;
         }
 
         .download-btn {
@@ -162,7 +164,13 @@
             background: #218838;
         }
 
-        
+        .download-video-btn {
+            background: #dc3545;
+        }
+
+        .download-video-btn:hover {
+            background: #c82333;
+        }
 
         .error {
             background: #f8d7da;
@@ -281,6 +289,9 @@
                             <button class="download-btn" onclick="downloadAudio('${video.id}')">
                                 🎵 Download Audio (MP3)
                             </button>
+                            <button class="download-btn download-video-btn" onclick="downloadVideo('${video.id}')">
+                                🎬 Download Video (MP4)
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -299,13 +310,15 @@
             }
         }
 
-        // Video download removed - audio only
-        
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchVideos();
-            }
-        });e}`, 'error');
+        async function downloadVideo(videoId) {
+            const url = `https://www.youtube.com/watch?v=${videoId}`;
+            showMessage('Starting video download...', 'success');
+            
+            try {
+                window.open(`/api/download/video?url=${encodeURIComponent(url)}`, '_blank');
+                showMessage('Video download started! Check your downloads folder.', 'success');
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
             }
         }
 
