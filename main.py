@@ -54,7 +54,11 @@ def download_audio():
         if not stream:
             return jsonify({'error': 'No audio stream available'}), 404
 
-        # Safe filename
+        # Get the actual mime type and file extension from the stream
+        mime_type = stream.mime_type or 'audio/mp4'
+        file_extension = stream.subtype or 'mp4'
+        
+        # Safe filename with correct extension
         title = re.sub(r'[^\w\s-]', '', yt.title)[:100]
         
         # Download to memory
@@ -64,9 +68,9 @@ def download_audio():
 
         return Response(
             buffer,
-            mimetype='audio/mpeg',
+            mimetype=mime_type,
             headers={
-                'Content-Disposition': f'attachment; filename="{title}.mp3"'
+                'Content-Disposition': f'attachment; filename="{title}.{file_extension}"'
             }
         )
     except Exception as e:

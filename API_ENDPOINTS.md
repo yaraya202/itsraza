@@ -47,7 +47,7 @@ curl "http://localhost:5000/api/search?q=saiyaara"
 
 ---
 
-## 2. Download Audio (MP3)
+## 2. Download Audio
 
 **Endpoint:** `/api/download/audio`
 
@@ -62,12 +62,13 @@ GET /api/download/audio?url=https://www.youtube.com/watch?v=VIDEO_ID
 ```
 
 **Response:**
-- Returns audio file stream (MP3 format)
-- Headers include `Content-Disposition` for automatic download
+- Returns audio file stream (format depends on YouTube source: mp4, webm, etc.)
+- Headers include `Content-Disposition` for automatic download with correct file extension
+- Mime type matches the actual audio format
 
 **cURL Example:**
 ```bash
-curl "http://localhost:5000/api/download/audio?url=https://youtu.be/Hl-qE48I8fo" -o audio.mp3
+curl "http://localhost:5000/api/download/audio?url=https://youtu.be/Hl-qE48I8fo" -o audio.mp4
 ```
 
 **Browser Example:**
@@ -132,7 +133,7 @@ curl "http://localhost:5000/api/search?q=saiyaara"
 
 ### Test Audio Download:
 ```bash
-curl "http://localhost:5000/api/download/audio?url=https://youtu.be/Hl-qE48I8fo" -o test_audio.mp3
+curl "http://localhost:5000/api/download/audio?url=https://youtu.be/Hl-qE48I8fo" -o test_audio.mp4
 ```
 
 ### Test Video Download:
@@ -147,7 +148,9 @@ curl "http://localhost:5000/api/download/video?url=https://youtu.be/Hl-qE48I8fo"
 1. **URL Encoding**: Always encode the YouTube URL in query parameters
 2. **CORS**: CORS is enabled for all origins
 3. **File Names**: Downloaded files use the video title as filename
-4. **Supported URLs**: 
+4. **Audio Format**: Audio downloads are in the native YouTube format (typically mp4 or webm), not transcoded to MP3
+5. **File Extensions**: The server automatically detects and applies the correct file extension based on the actual format
+6. **Supported URLs**: 
    - `https://www.youtube.com/watch?v=VIDEO_ID`
    - `https://youtu.be/VIDEO_ID`
    - Short URLs with query parameters are also supported

@@ -1,7 +1,7 @@
 # YouTube Search & Download API
 
 ## Overview
-A Python Flask-based web application that allows users to search for YouTube videos and download them as audio (MP3) or video (MP4) files. The application features a clean, modern interface with a purple gradient design and provides three backend API endpoints.
+A Python Flask-based web application that allows users to search for YouTube videos and download them as audio (native format: mp4, webm, etc.) or video (MP4) files. The application features a clean, modern interface with a purple gradient design and provides three backend API endpoints.
 
 ## Project Architecture
 
@@ -38,7 +38,7 @@ A Python Flask-based web application that allows users to search for YouTube vid
 - **URL**: `/api/download/audio`
 - **Method**: GET
 - **Query Parameters**: `url` (YouTube video URL)
-- **Response**: Audio file stream (MP3)
+- **Response**: Audio file stream (format: mp4, webm, etc. depending on source)
 - **Example**: `/api/download/audio?url=https://youtu.be/CcoKjQK9QIA`
 
 ### 3. Video Download Endpoint
@@ -51,7 +51,8 @@ A Python Flask-based web application that allows users to search for YouTube vid
 ## Features
 - Search for YouTube videos with real-time results
 - Display top 10 search results with thumbnails, titles, and metadata
-- Download audio (MP3) or video (MP4) with one click
+- Download audio (native format: mp4, webm, etc.) or video (MP4) with one click
+- Accurate file format detection and labeling
 - Responsive design that works on desktop and mobile
 - No API key required for searching
 - Clean, modern UI with gradient background
