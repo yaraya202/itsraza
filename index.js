@@ -52,21 +52,42 @@ app.get('/api/download/audio', async (req, res) => {
     }
     const videoId = videoIdMatch[1];
 
-    const info = await ytdl.getInfo(videoId);
-    const title = info.videoDetails.title.replace(/[^\w\s]/gi, '');
+    const info = await ytdl.getInfo(videoId, {
+      requestOptions: {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      }
+    });
+    
+    const title = info.videoDetails.title.replace(/[^\w\s]/gi, '').substring(0, 100);
 
     res.header('Content-Disposition', `attachment; filename="${title}.mp3"`);
     res.header('Content-Type', 'audio/mpeg');
 
-    ytdl(videoId, {
+    const stream = ytdl(videoId, {
       quality: 'highestaudio',
-      filter: 'audioonly'
-    }).pipe(res);
+      filter: 'audioonly',
+      requestOptions: {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      }
+    });
+
+    stream.on('error', (err) => {
+      console.error('Stream error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Download failed' });
+      }
+    });
+
+    stream.pipe(res);
 
   } catch (error) {
     console.error('Audio download error:', error);
     if (!res.headersSent) {
-      res.status(500).json({ error: 'Failed to download audio: ' + error.message });
+      res.status(500).json({ error: 'Failed to download audio. Please try again.' });
     }
   }
 });
@@ -85,21 +106,42 @@ app.get('/api/download/video', async (req, res) => {
     }
     const videoId = videoIdMatch[1];
 
-    const info = await ytdl.getInfo(videoId);
-    const title = info.videoDetails.title.replace(/[^\w\s]/gi, '');
+    const info = await ytdl.getInfo(videoId, {
+      requestOptions: {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      }
+    });
+    
+    const title = info.videoDetails.title.replace(/[^\w\s]/gi, '').substring(0, 100);
 
     res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
     res.header('Content-Type', 'video/mp4');
 
-    ytdl(videoId, {
+    const stream = ytdl(videoId, {
       quality: 'highest',
-      filter: format => format.container === 'mp4'
-    }).pipe(res);
+      filter: format => format.container === 'mp4',
+      requestOptions: {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      }
+    });
+
+    stream.on('error', (err) => {
+      console.error('Stream error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Download failed' });
+      }
+    });
+
+    stream.pipe(res);
 
   } catch (error) {
     console.error('Video download error:', error);
     if (!res.headersSent) {
-      res.status(500).json({ error: 'Failed to download video: ' + error.message });
+      res.status(500).json({ error: 'Failed to download video. Please try again.' });
     }
   }
 });
