@@ -1,25 +1,28 @@
-# YouTube Search & Download Application
+# YouTube Search & Download API
 
 ## Overview
-A Node.js-based web application that allows users to search for YouTube videos and download them as audio or video files. The application features a clean, modern interface with a purple gradient design and provides three backend API endpoints for search and download functionality.
+A Python Flask-based web application that allows users to search for YouTube videos and download them as audio (MP3) or video (MP4) files. The application features a clean, modern interface with a purple gradient design and provides three backend API endpoints.
 
 ## Project Architecture
 
 ### Technology Stack
-- **Backend**: Node.js with Express.js
+- **Backend**: Python 3.11 with Flask
 - **Frontend**: Vanilla HTML, CSS, and JavaScript
-- **YouTube Search**: youtube-search-api (no API key required)
-- **YouTube Download**: @distube/ytdl-core (actively maintained fork)
-- **CORS**: Enabled for cross-origin requests
+- **YouTube Search**: youtube-search-python (no API key required)
+- **YouTube Download**: pytubefix (actively maintained)
+- **CORS**: flask-cors for cross-origin requests
+- **Production Server**: Gunicorn
 
 ### File Structure
 ```
 .
-├── index.js              # Express server with API endpoints
+├── main.py              # Flask server with API endpoints
 ├── public/
-│   └── index.html        # Frontend web interface
-├── package.json          # Node.js dependencies and scripts
-└── replit.md            # Project documentation
+│   └── index.html       # Frontend web interface
+├── requirements.txt     # Python dependencies
+├── pyproject.toml       # Project metadata
+├── API_ENDPOINTS.md     # API documentation
+└── replit.md           # Project documentation
 ```
 
 ## API Endpoints
@@ -29,21 +32,21 @@ A Node.js-based web application that allows users to search for YouTube videos a
 - **Method**: GET
 - **Query Parameters**: `q` (search query)
 - **Response**: JSON array of top 10 video results with metadata
-- **Example**: `/api/search?q=saiyaara`
+- **Example**: `/api/search?q=Saiyaara`
 
 ### 2. Audio Download Endpoint
 - **URL**: `/api/download/audio`
 - **Method**: GET
 - **Query Parameters**: `url` (YouTube video URL)
 - **Response**: Audio file stream (MP3)
-- **Example**: `/api/download/audio?url=https://youtu.be/Hl-qE48I8fo`
+- **Example**: `/api/download/audio?url=https://youtu.be/CcoKjQK9QIA`
 
 ### 3. Video Download Endpoint
 - **URL**: `/api/download/video`
 - **Method**: GET
 - **Query Parameters**: `url` (YouTube video URL)
 - **Response**: Video file stream (MP4)
-- **Example**: `/api/download/video?url=https://youtu.be/Hl-qE48I8fo`
+- **Example**: `/api/download/video?url=https://youtu.be/CcoKjQK9QIA`
 
 ## Features
 - Search for YouTube videos with real-time results
@@ -52,42 +55,55 @@ A Node.js-based web application that allows users to search for YouTube videos a
 - Responsive design that works on desktop and mobile
 - No API key required for searching
 - Clean, modern UI with gradient background
+- CORS enabled for cross-origin requests
 
 ## Deployment
 
 ### Replit Deployment
 The application is configured for Replit's Autoscale deployment:
-- **Run Command**: `node index.js`
+- **Run Command**: `python main.py`
 - **Port**: 5000 (bound to 0.0.0.0 for external access)
-- **Deployment Type**: Autoscale (automatically adjusts resources)
+- **Deployment Type**: Autoscale
+
+### Vercel Deployment
+The project can be deployed to Vercel using the `vercel.json` configuration.
+
+### Render Deployment
+The project can be deployed to Render using the included configuration.
 
 ### Manual Deployment
-The application can be deployed anywhere Node.js is supported:
 ```bash
-npm install
-npm start
+pip install -r requirements.txt
+python main.py
 ```
 
-## Recent Changes
-- **October 30, 2025**: Initial project setup
-  - Created Express.js server with three API endpoints
-  - Implemented YouTube search functionality
-  - Added audio and video download capabilities
-  - Created responsive frontend interface
-  - Configured Replit deployment settings
+### Production Deployment
+```bash
+pip install -r requirements.txt
+gunicorn --bind 0.0.0.0:5000 main:app
+```
 
 ## Dependencies
-- `express`: ^5.1.0 - Web framework
-- `@distube/ytdl-core`: ^4.16.12 - YouTube video downloader
-- `youtube-search-api`: ^2.0.1 - YouTube search without API key
-- `cors`: ^2.8.5 - Enable CORS
-- `@types/node`: ^22.13.11 - TypeScript type definitions
+- `Flask==3.0.0` - Web framework
+- `flask-cors==4.0.0` - Enable CORS
+- `pytubefix==10.1.1` - YouTube video downloader
+- `youtube-search-python==1.6.6` - YouTube search without API key
+- `httpx==0.27.2` - HTTP client (pinned for compatibility)
+- `gunicorn==21.2.0` - Production WSGI server
 
 ## Testing
-- Search test query: "saiyaara"
-- Download test URL: https://youtu.be/Hl-qE48I8fo?si=qecGVJ3NOoLJNJlL
+- **Search test**: "Saiyaara"
+- **Download test URL**: https://youtu.be/CcoKjQK9QIA
+
+## Recent Changes
+- **October 30, 2025**: Migrated from Node.js to Python
+  - Converted to Flask-based backend
+  - Fixed httpx compatibility issues
+  - Updated to latest pytubefix for YouTube downloads
+  - Configured for multi-platform deployment
+  - Created comprehensive API documentation
 
 ## User Preferences
 - Language: Hindi/English mix
-- Framework: Node.js only (no Python)
-- Deployment: Should work anywhere (Replit, Heroku, etc.)
+- Framework: Python-only (Flask)
+- Deployment: Multi-platform (Replit, Vercel, Render, etc.)
