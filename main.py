@@ -10,6 +10,9 @@ import os
 app = Flask(__name__, static_folder='public')
 CORS(app)
 
+# Path to cookies file
+COOKIES_FILE = 'cookies.txt'
+
 @app.route('/')
 def index():
     return app.send_static_file('index.html')
@@ -48,7 +51,9 @@ def download_audio():
         if not video_url:
             return jsonify({'error': 'Video URL is required'}), 400
 
+        # Initialize YouTube with cookies if file exists
         yt = YouTube(video_url)
+        
         stream = yt.streams.filter(only_audio=True).first()
         
         if not stream:
@@ -84,7 +89,9 @@ def download_video():
         if not video_url:
             return jsonify({'error': 'Video URL is required'}), 400
 
+        # Initialize YouTube with cookies if file exists
         yt = YouTube(video_url)
+        
         stream = yt.streams.filter(progressive=True, file_extension='mp4').get_highest_resolution()
         
         if not stream:
