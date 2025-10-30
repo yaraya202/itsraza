@@ -1,8 +1,13 @@
+
 const express = require('express');
 const cors = require('cors');
-const ytdl = require('@distube/ytdl-core');
 const youtubesearchapi = require('youtube-search-api');
 const path = require('path');
+const { exec } = require('child_process');
+const { promisify } = require('util');
+const fs = require('fs').promises;
+
+const execAsync = promisify(exec);
 
 const app = express();
 const PORT = 5000;
@@ -52,37 +57,37 @@ app.get('/api/download/audio', async (req, res) => {
     }
     const videoId = videoIdMatch[1];
 
-    const info = await ytdl.getInfo(videoId, {
-      requestOptions: {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-      }
-    });
+    // Get video info first
+    const { stdout: infoJson } = await execAsync(
+      `yt-dlp --dump-json "https://www.youtube.com/watch?v=${videoId}"`
+    );
     
-    const title = info.videoDetails.title.replace(/[^\w\s]/gi, '').substring(0, 100);
+    const info = JSON.parse(infoJson);
+    const title = info.title.replace(/[^\w\s]/gi, '').substring(0, 100);
 
     res.header('Content-Disposition', `attachment; filename="${title}.mp3"`);
     res.header('Content-Type', 'audio/mpeg');
 
-    const stream = ytdl(videoId, {
-      quality: 'highestaudio',
-      filter: 'audioonly',
-      requestOptions: {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-      }
-    });
+    // Stream audio directly
+    const ytdlp = exec(
+      `yt-dlp -f bestaudio -o - "https://www.youtube.com/watch?v=${videoId}" | ffmpeg -i pipe:0 -f mp3 -ab 192k pipe:1`,
+      { maxBuffer: 1024 * 1024 * 50 }
+    );
 
-    stream.on('error', (err) => {
-      console.error('Stream error:', err);
+    ytdlp.stdout.pipe(res);
+
+    ytdlp.on('error', (err) => {
+      console.error('Download error:', err);
       if (!res.headersSent) {
         res.status(500).json({ error: 'Download failed' });
       }
     });
 
-    stream.pipe(res);
+    ytdlp.on('exit', (code) => {
+      if (code !== 0 && !res.headersSent) {
+        res.status(500).json({ error: 'Download failed' });
+      }
+    });
 
   } catch (error) {
     console.error('Audio download error:', error);
@@ -106,37 +111,37 @@ app.get('/api/download/video', async (req, res) => {
     }
     const videoId = videoIdMatch[1];
 
-    const info = await ytdl.getInfo(videoId, {
-      requestOptions: {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-      }
-    });
+    // Get video info first
+    const { stdout: infoJson } = await execAsync(
+      `yt-dlp --dump-json "https://www.youtube.com/watch?v=${videoId}"`
+    );
     
-    const title = info.videoDetails.title.replace(/[^\w\s]/gi, '').substring(0, 100);
+    const info = JSON.parse(infoJson);
+    const title = info.title.replace(/[^\w\s]/gi, '').substring(0, 100);
 
     res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
     res.header('Content-Type', 'video/mp4');
 
-    const stream = ytdl(videoId, {
-      quality: 'highest',
-      filter: format => format.container === 'mp4',
-      requestOptions: {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-      }
-    });
+    // Stream video directly
+    const ytdlp = exec(
+      `yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --merge-output-format mp4 -o - "https://www.youtube.com/watch?v=${videoId}"`,
+      { maxBuffer: 1024 * 1024 * 100 }
+    );
 
-    stream.on('error', (err) => {
-      console.error('Stream error:', err);
+    ytdlp.stdout.pipe(res);
+
+    ytdlp.on('error', (err) => {
+      console.error('Download error:', err);
       if (!res.headersSent) {
         res.status(500).json({ error: 'Download failed' });
       }
     });
 
-    stream.pipe(res);
+    ytdlp.on('exit', (code) => {
+      if (code !== 0 && !res.headersSent) {
+        res.status(500).json({ error: 'Download failed' });
+      }
+    });
 
   } catch (error) {
     console.error('Video download error:', error);
