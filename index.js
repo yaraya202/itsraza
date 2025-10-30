@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const youtubesearchapi = require('youtube-search-api');
 const path = require('path');
-const { YtdlCore } = require('@ybd-project/ytdl-core');
+const ytdl = require('ytdl-core');
 
 const app = express();
 const PORT = 5000;
@@ -47,18 +47,16 @@ app.get('/api/download/audio', async (req, res) => {
       return res.status(400).json({ error: 'Video URL is required' });
     }
 
-    const ytdl = new YtdlCore();
-    const info = await ytdl.getFullInfo(videoUrl);
-    
+    const info = await ytdl.getInfo(videoUrl);
     const title = info.videoDetails.title.replace(/[^\w\s]/gi, '').substring(0, 100);
-    
-    const audioFormats = info.formats.filter(f => f.hasAudio && !f.hasVideo);
-    const audioFormat = audioFormats.sort((a, b) => b.audioBitrate - a.audioBitrate)[0];
 
     res.header('Content-Disposition', `attachment; filename="${title}.mp3"`);
     res.header('Content-Type', 'audio/mpeg');
 
-    const audioStream = await ytdl.download(videoUrl, { format: audioFormat });
+    const audioStream = ytdl(videoUrl, {
+      quality: 'highestaudio',
+      filter: 'audioonly'
+    });
     
     audioStream.on('error', (err) => {
       console.error('Download error:', err);
@@ -85,18 +83,16 @@ app.get('/api/download/video', async (req, res) => {
       return res.status(400).json({ error: 'Video URL is required' });
     }
 
-    const ytdl = new YtdlCore();
-    const info = await ytdl.getFullInfo(videoUrl);
-    
+    const info = await ytdl.getInfo(videoUrl);
     const title = info.videoDetails.title.replace(/[^\w\s]/gi, '').substring(0, 100);
-    
-    const videoFormats = info.formats.filter(f => f.hasVideo && f.hasAudio);
-    const videoFormat = videoFormats.sort((a, b) => b.bitrate - a.bitrate)[0];
 
     res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
     res.header('Content-Type', 'video/mp4');
 
-    const videoStream = await ytdl.download(videoUrl, { format: videoFormat });
+    const videoStream = ytdl(videoUrl, {
+      quality: 'highest',
+      filter: format => format.hasVideo && format.hasAudio
+    });
     
     videoStream.on('error', (err) => {
       console.error('Download error:', err);
