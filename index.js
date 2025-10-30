@@ -56,14 +56,25 @@ app.get('/api/download/audio', async (req, res) => {
     res.header('Content-Disposition', `attachment; filename="${title}.mp3"`);
     res.header('Content-Type', 'audio/mpeg');
 
-    ytdl(videoUrl, {
+    const stream = ytdl(videoUrl, {
       filter: 'audioonly',
       quality: 'highestaudio'
-    }).pipe(res);
+    });
+
+    stream.on('error', (err) => {
+      console.error('Stream error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Download failed' });
+      }
+    });
+
+    stream.pipe(res);
 
   } catch (error) {
     console.error('Audio download error:', error);
-    res.status(500).json({ error: 'Failed to download audio' });
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Failed to download audio: ' + error.message });
+    }
   }
 });
 
@@ -85,14 +96,25 @@ app.get('/api/download/video', async (req, res) => {
     res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
     res.header('Content-Type', 'video/mp4');
 
-    ytdl(videoUrl, {
+    const stream = ytdl(videoUrl, {
       quality: 'highest',
       filter: format => format.container === 'mp4'
-    }).pipe(res);
+    });
+
+    stream.on('error', (err) => {
+      console.error('Stream error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Download failed' });
+      }
+    });
+
+    stream.pipe(res);
 
   } catch (error) {
     console.error('Video download error:', error);
-    res.status(500).json({ error: 'Failed to download video' });
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Failed to download video: ' + error.message });
+    }
   }
 });
 
