@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Search & Download</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .search-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .search-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-size: 18px;
+            margin: 20px 0;
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .video-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .video-info {
+            padding: 15px;
+        }
+
+        .video-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .video-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .download-btn {
+            flex: 1;
+            padding: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+        }
+
+        .download-btn.video-btn {
+            background: #dc3545;
+        }
+
+        .download-btn.video-btn:hover {
+            background: #c82333;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .no-results {
+            text-align: center;
+            color: white;
+            font-size: 18px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 YouTube Search & Download</h1>
+        
+        <div class="search-box">
+            <div class="search-input-container">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Search for videos (e.g., saiyaara)..."
+                    autocomplete="off"
+                >
+                <button id="searchBtn" onclick="searchVideos()">Search</button>
+            </div>
+            <div id="message"></div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            Searching...
+        </div>
+
+        <div id="results" class="results"></div>
+        <div id="noResults" class="no-results" style="display: none;">
+            No results found. Try searching for something!
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const results = document.getElementById('results');
+        const loading = document.getElementById('loading');
+        const messageDiv = document.getElementById('message');
+        const noResults = document.getElementById('noResults');
+
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchVideos();
+            }
+        });
+
+        async function searchVideos() {
+            const query = searchInput.value.trim();
+            
+            if (!query) {
+                showMessage('Please enter a search term', 'error');
+                return;
+            }
+
+            loading.style.display = 'block';
+            results.innerHTML = '';
+            noResults.style.display = 'none';
+            messageDiv.innerHTML = '';
+            searchBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Search failed');
+                }
+
+                if (data.videos && data.videos.length > 0) {
+                    displayResults(data.videos);
+                } else {
+                    noResults.style.display = 'block';
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            } finally {
+                loading.style.display = 'none';
+                searchBtn.disabled = false;
+            }
+        }
+
+        function displayResults(videos) {
+            results.innerHTML = videos.map(video => `
+                <div class="video-card">
+                    <img src="${video.thumbnail}" alt="${video.title}" class="video-thumbnail">
+                    <div class="video-info">
+                        <div class="video-title">${video.title}</div>
+                        <div class="video-meta">
+                            ${video.channel}<br>
+                            ${video.duration} • ${video.views}<br>
+                            ${video.uploadDate}
+                        </div>
+                        <div class="video-actions">
+                            <button class="download-btn" onclick="downloadAudio('${video.id}')">
+                                🎵 Audio
+                            </button>
+                            <button class="download-btn video-btn" onclick="downloadVideo('${video.id}')">
+                                🎬 Video
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function downloadAudio(videoId) {
+            const url = `https://www.youtube.com/watch?v=${videoId}`;
+            showMessage('Starting audio download...', 'success');
+            
+            try {
+                window.open(`/api/download/audio?url=${encodeURIComponent(url)}`, '_blank');
+                showMessage('Audio download started! Check your downloads folder.', 'success');
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function downloadVideo(videoId) {
+            const url = `https://www.youtube.com/watch?v=${videoId}`;
+            showMessage('Starting video download...', 'success');
+            
+            try {
+                window.open(`/api/download/video?url=${encodeURIComponent(url)}`, '_blank');
+                showMessage('Video download started! Check your downloads folder.', 'success');
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            messageDiv.innerHTML = `<div class="${type}">${text}</div>`;
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
