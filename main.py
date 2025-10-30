@@ -1,4 +1,3 @@
-
 from flask import Flask, request, jsonify, send_file, Response
 from flask_cors import CORS
 from pytubefix import YouTube
@@ -7,13 +6,16 @@ import io
 import re
 import os
 
-app = Flask(__name__, static_folder='public')
+# Initialize Flask app
+app = Flask(__name__, static_folder='public', static_url_path='')
 CORS(app)
 
+# Default route (for Vercel test)
 @app.route('/')
-def index():
-    return app.send_static_file('index.html')
+def home():
+    return jsonify({"message": "✅ Flask YouTube Downloader is running successfully on Vercel!"})
 
+# YouTube Search API
 @app.route('/api/search', methods=['GET'])
 def search_videos():
     try:
@@ -41,6 +43,8 @@ def search_videos():
         print(f'Search error: {e}')
         return jsonify({'error': 'Failed to search videos'}), 500
 
+
+# Audio download API
 @app.route('/api/download/audio', methods=['GET'])
 def download_audio():
     try:
@@ -54,14 +58,10 @@ def download_audio():
         if not stream:
             return jsonify({'error': 'No audio stream available'}), 404
 
-        # Get the actual mime type and file extension from the stream
         mime_type = stream.mime_type or 'audio/mp4'
         file_extension = stream.subtype or 'mp4'
-        
-        # Safe filename with correct extension
         title = re.sub(r'[^\w\s-]', '', yt.title)[:100]
         
-        # Download to memory
         buffer = io.BytesIO()
         stream.stream_to_buffer(buffer)
         buffer.seek(0)
@@ -77,6 +77,8 @@ def download_audio():
         print(f'Audio download error: {e}')
         return jsonify({'error': f'Failed to download audio: {str(e)}'}), 500
 
+
+# Video download API
 @app.route('/api/download/video', methods=['GET'])
 def download_video():
     try:
@@ -90,10 +92,7 @@ def download_video():
         if not stream:
             return jsonify({'error': 'No video stream available'}), 404
 
-        # Safe filename
         title = re.sub(r'[^\w\s-]', '', yt.title)[:100]
-        
-        # Download to memory
         buffer = io.BytesIO()
         stream.stream_to_buffer(buffer)
         buffer.seek(0)
@@ -109,8 +108,9 @@ def download_video():
         print(f'Video download error: {e}')
         return jsonify({'error': f'Failed to download video: {str(e)}'}), 500
 
-# Vercel serverless handler
+
+# Vercel handler
 app_handler = app
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
