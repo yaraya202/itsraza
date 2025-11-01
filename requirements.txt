@@ -1,5 +1,5 @@
+
 Flask==3.1.0
 flask-cors==5.0.0
-yt-dlp==2025.10.22
+yt-dlp==2024.8.6
 gunicorn==23.0.0
-ffmpeg-python==0.2.0
