@@ -28,8 +28,8 @@ def get_ydl_opts(download_type='audio', quality='360p'):
         opts['cookiefile'] = COOKIES_FILE
     
     if download_type == 'audio':
-        # Download best audio and convert to M4A with AAC codec at 128kbps
-        opts['format'] = 'bestaudio/best'
+        # Download best audio with multiple fallback formats
+        opts['format'] = 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best[ext=m4a]/best[ext=webm]/best'
         opts['postprocessors'] = [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'm4a',
@@ -41,14 +41,18 @@ def get_ydl_opts(download_type='audio', quality='360p'):
             '-ar', '44100',  # Sample rate 44.1kHz
             '-ac', '2',      # Stereo
         ]
+        # Add format sort to prefer smaller files
+        opts['format_sort'] = ['quality', 'res', 'fps', 'codec:aac']
     else:
-        # Accept any video format for specified quality
+        # Accept any video format for specified quality with multiple fallbacks
         if quality == '360p':
-            opts['format'] = 'worst[height<=360]/best[height<=360]/best[height<=480]/best'
+            opts['format'] = 'best[height<=360][ext=mp4]/best[height<=360]/best[height<=480][ext=mp4]/best[height<=480]/worst[height>=360]/best'
         elif quality == '720p':
-            opts['format'] = 'best[height<=720]/best[height<=1080]/best'
+            opts['format'] = 'best[height<=720][ext=mp4]/best[height<=720]/best[height<=1080][ext=mp4]/best[height<=1080]/best'
         else:
-            opts['format'] = 'best'
+            opts['format'] = 'best[ext=mp4]/best'
+        # Prefer MP4 for better compatibility
+        opts['merge_output_format'] = 'mp4'
     
     return opts
 
