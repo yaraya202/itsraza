@@ -3,9 +3,14 @@ services:
   - type: web
     name: youtube-downloader
     env: python
-    runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 main:app
+    region: oregon
+    plan: free
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 main:app
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.0
+        value: 3.11.7
+      - key: PORT
+        value: 10000
